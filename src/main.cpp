@@ -165,5 +165,5 @@ int main()
         rgb_split(image); 
         image.save("output/pouet.png"); // Sauvegarde l'image
     }
-    
+    // bhjgj
 }
