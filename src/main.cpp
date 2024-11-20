@@ -394,103 +394,126 @@ void pixel_sorting(sil::Image &image){
     }
 }
 
-// 
+// Dégradé couleur
+void gradiant_color(sil::Image&image, glm::vec3 color1, glm::vec3 color2 ){
+    color1 = linear_to_oklab (color1);
+    color2=  linear_to_oklab (color2);
+    for (int x{0}; x < image.width(); ++x)
+    {
+        for (int y{0}; y < image.height(); ++y)
+        {
+            // image.pixel(x, y) = glm::mix(color1, color2, static_cast<float>(x) / static_cast<float>(image.width() - 1));
+            image.pixel(x, y) = oklab_to_linear(glm::mix(color1, color2, static_cast<float>(x) / static_cast<float>(image.width() - 1))); 
+        }
+    }
+
+}
+
+// Fractale de Mandelbrot
+
+// Tramage 
 
 int main()
 {
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        green_only(image); // Utilise la fonction pour modifier l'image
-        image.save("output/green_only.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        channels_swap(image); // Utilise la fonction pour modifier l'image
-        image.save("output/channels_swap.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        black_white(image); // Utilise la fonction pour modifier l'image
-        image.save("output/black_white.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        negatif(image); // Utilise la fonction pour modifier l'image
-        image.save("output/negatif.png"); // Sauvegarde l'image
-    }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     green_only(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/green_only.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     channels_swap(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/channels_swap.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     black_white(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/black_white.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     negatif(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/negatif.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{300, 200}; // Lis l'image
+    //     gradiant(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/gradiant.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     mirror(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/mirror.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     noise(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/noise.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     rotating(image); 
+    //     image.save("output/rotating.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     rgb_split(image); 
+    //     image.save("output/rgb_split2.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/photo.jpg"};
+    //     light_luminosity(image); 
+    //     image.save("output/light_luminosity.jpg"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/photo.jpg"};
+    //     dark_Luminosity(image); 
+    //     image.save("output/dark_luminosity.jpg"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
+    //     disk(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/disk.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
+    //     circle(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/circle.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
+    //     animation(image); // Utilise la fonction pour modifier l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
+    //     rosace(image); // Utilise la fonction pour modifier l'image
+    //     image.save("output/rosace.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     mosaic(image); 
+    //     image.save("output/mosaic.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     mosaic_mirror(image); 
+    //     image.save("output/mosaic_mirror.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     glitch(image); 
+    //     image.save("output/glitch.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"};
+    //     pixel_sorting(image); 
+    //     image.save("output/pixel_sorting.png"); // Sauvegarde l'image
+    // }
     {
         sil::Image image{300, 200}; // Lis l'image
-        gradiant(image); // Utilise la fonction pour modifier l'image
-        image.save("output/gradiant.png"); // Sauvegarde l'image
+        gradiant_color(image, glm::vec3{1, 0.01, 0.6}, glm::vec3{0, 1, 0});
+        image.save("output/gradiant_color.png"); // Sauvegarde l'image
     }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        mirror(image); // Utilise la fonction pour modifier l'image
-        image.save("output/mirror.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        noise(image); // Utilise la fonction pour modifier l'image
-        image.save("output/noise.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        rotating(image); 
-        image.save("output/rotating.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        rgb_split(image); 
-        image.save("output/rgb_split2.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/photo.jpg"};
-        light_luminosity(image); 
-        image.save("output/light_luminosity.jpg"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/photo.jpg"};
-        dark_Luminosity(image); 
-        image.save("output/dark_luminosity.jpg"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{500, 500}; // Lis l'image
-        disk(image); // Utilise la fonction pour modifier l'image
-        image.save("output/disk.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{500, 500}; // Lis l'image
-        circle(image); // Utilise la fonction pour modifier l'image
-        image.save("output/circle.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{500, 500}; // Lis l'image
-        animation(image); // Utilise la fonction pour modifier l'image
-    }
-    {
-        sil::Image image{500, 500}; // Lis l'image
-        rosace(image); // Utilise la fonction pour modifier l'image
-        image.save("output/rosace.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        mosaic(image); 
-        image.save("output/mosaic.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        mosaic_mirror(image); 
-        image.save("output/mosaic_mirror.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        glitch(image); 
-        image.save("output/glitch.png"); // Sauvegarde l'image
-    }
-    {
-        sil::Image image{"images/logo.png"};
-        pixel_sorting(image); 
-        image.save("output/pixel_sorting.png"); // Sauvegarde l'image
-    }
+    
 
 }
