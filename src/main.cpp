@@ -1,5 +1,7 @@
 #include <sil/sil.hpp>
 #include "random.hpp"
+#include <algorithm>
+#include "sous_fonction/sous_fonction.hpp"
 
 //Exercice "Ne gardez que le vert"
 void green_only(sil::Image& image){
@@ -33,7 +35,7 @@ void black_white(sil::Image &image){
         for (int y{0}; y < image.height(); y++)
         { 
             glm::vec3 &pixel = image.pixel(x, y);
-            float gray = pixel.r * 0.21 + pixel.g *0.72 + pixel.b * 0.07;
+            float gray = brightness(pixel);
             pixel.r = gray;
             pixel.g = gray;
             pixel.b = gray;
@@ -115,19 +117,18 @@ void rotating(sil::Image&image){
 // RGB split
 void rgb_split(sil::Image&image){
 
-    sil::Image image_split{image};
+    sil::Image image_split{image.width(), image.height()};
 
       for(int x{0}; x < image.width(); x++) {
         for(int y{0}; y < image.height(); y++) {
 
-            if(x < 30) {
-                image_split.pixel(x, y).b = image.pixel(x + 30, y).b;
-            } else if (x > image.width() - 31) {
+            if(x >= 30) {
                 image_split.pixel(x, y).r = image.pixel(x - 30, y).r;
-            } else {
-                image_split.pixel(x, y).r = image.pixel(x - 30, y).r;
+            } 
+             if (x < image.width() - 31) {
                 image_split.pixel(x, y).b = image.pixel(x + 30, y).b;
-            }
+            } 
+                image_split.pixel(x, y).g = image.pixel(x, y).g;
         }
     }
     image = image_split;
@@ -252,12 +253,8 @@ void animation(sil::Image&image){
         
     }
     
-    
-
-
 // Rosace
-void rosace(sil::Image &image)
-{
+void rosace(sil::Image &image){
 
     int r{100};
     int thickness{5};
@@ -306,8 +303,98 @@ void rosace(sil::Image &image)
     }
 }
 
-// 
+// Mosaïque
+void mosaic(sil::Image &image){
+    // Dimensions de la mosaïque
+    int new_width = image.width() * 5;
+    int new_height = image.height() * 5;
 
+    sil::Image new_image{new_width, new_height};
+
+    for (int x = 0; x < new_width; ++x)
+    {
+        for (int y = 0; y < new_height; ++y)
+        {
+            int old_x = x % image.width();
+            int old_y = y % image.height();
+
+            new_image.pixel(x, y) = image.pixel(old_x, old_y);
+        }
+    }
+    image = new_image;
+}
+
+// Mosaïque mirroir 
+void mosaic_mirror(sil::Image&image){
+
+    sil::Image mosaic{image.width() * 5, image.height() * 5};
+
+    for(int x{0}; x < mosaic.width(); x++) 
+    {
+        for(int y{0}; y < mosaic.height(); y++)
+        {
+            int old_x {x % image.width()};
+            int old_y {y % image.height()};
+
+            bool mirrorX {(x / image.width()) % 2 == 1};
+            bool mirrorY {(y / image.height()) % 2 == 1}; 
+
+            if (mirrorX) {
+                old_x = image.width() - old_x - 1;
+            }
+            if (mirrorY) {
+                old_y = image.height() - old_y - 1;
+            }
+
+            mosaic.pixel(x, y) = image.pixel(old_x, old_y);
+        }
+    }
+    image = mosaic;
+}
+
+// Glitch
+void glitch(sil::Image &image){
+    int number_glitch = 100;
+
+    for (int i = 0; i < number_glitch; ++i)
+    {
+        int rectangle1_x = random_int(0, image.width() - 1);
+        int rectangle1_y = random_int(0, image.height() - 1);
+        int rectangle_width = random_int(image.width()/20, image.width()/8); 
+        int rectangle_height = random_int(image.height()/100, image.height()/30); 
+
+        int rectangle2_x = random_int(0, image.width() - 1);
+        int rectangle2_y = random_int(0, image.height() - 1);
+
+        rectangle_width = std::min(rectangle_width, image.width() - std::max(rectangle1_x, rectangle2_x));
+        rectangle_height = std::min(rectangle_height, image.height() - std::max(rectangle1_y, rectangle2_y));
+
+        for (int x = 0; x < rectangle_width; ++x)
+        {
+            for (int y = 0; y < rectangle_height; ++y)
+            {
+                std::swap(image.pixel(rectangle1_x + x, rectangle1_y + y), image.pixel(rectangle2_x + x, rectangle2_y + y));
+            }
+        }
+    }
+}
+
+// Tri de pixels
+void pixel_sorting(sil::Image &image){
+
+    for (int i=0; (i + 70) < image.pixels().size(); i++)
+    {
+        if (random_int(0, 150) == 75){
+            std::sort(image.pixels().begin() + i, image.pixels().begin() + (i + 70), [](glm::vec3 const& color1, glm::vec3 const& color2)
+            {
+            return brightness(color1) > brightness(color2);
+            });
+            i = i + 70;
+        }
+    }
+}
+
+// 
 
 int main()
 {
@@ -354,7 +441,7 @@ int main()
     {
         sil::Image image{"images/logo.png"};
         rgb_split(image); 
-        image.save("output/rgb_split.png"); // Sauvegarde l'image
+        image.save("output/rgb_split2.png"); // Sauvegarde l'image
     }
     {
         sil::Image image{"images/photo.jpg"};
@@ -385,4 +472,25 @@ int main()
         rosace(image); // Utilise la fonction pour modifier l'image
         image.save("output/rosace.png"); // Sauvegarde l'image
     }
+    {
+        sil::Image image{"images/logo.png"};
+        mosaic(image); 
+        image.save("output/mosaic.png"); // Sauvegarde l'image
+    }
+    {
+        sil::Image image{"images/logo.png"};
+        mosaic_mirror(image); 
+        image.save("output/mosaic_mirror.png"); // Sauvegarde l'image
+    }
+    {
+        sil::Image image{"images/logo.png"};
+        glitch(image); 
+        image.save("output/glitch.png"); // Sauvegarde l'image
+    }
+    {
+        sil::Image image{"images/logo.png"};
+        pixel_sorting(image); 
+        image.save("output/pixel_sorting.png"); // Sauvegarde l'image
+    }
+
 }
