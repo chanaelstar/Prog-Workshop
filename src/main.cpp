@@ -2,6 +2,9 @@
 #include "random.hpp"
 #include <algorithm>
 #include "sous_fonction/sous_fonction.hpp"
+#include <complex>
+#include <iostream>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 //Exercice "Ne gardez que le vert"
 void green_only(sil::Image& image){
@@ -410,8 +413,168 @@ void gradiant_color(sil::Image&image, glm::vec3 color1, glm::vec3 color2 ){
 }
 
 // Fractale de Mandelbrot
+void mandelbrot_fractal(sil::Image&image){
+
+    glm::vec3 black {0, 0, 0};
+    glm::vec3 white {1, 1, 1};
+
+    for (int x{0}; x < image.width(); x++)
+    {
+        for (int y{0}; y < image.height(); y++)
+        {
+
+            std::complex<float> c{ static_cast<float> (x)/200 -1.75f, static_cast<float> (y-250)/200 }; // Définis le nombre z = 3 + 2*i
+            std::complex<float> z{0, 0}; 
+
+            for (int i = 0; i < 50; i++){
+                z = z * z + c;
+                if(std::abs(z) > 2){
+                    image.pixel(x, y) = glm::vec3{static_cast<float>(i) / 50.f};
+                    break;
+                }
+            }
+            if (std::abs(z) < 2){
+                image.pixel(x, y) = white;
+            }
+        }
+    }
+}
 
 // Tramage 
+void dithering(sil::Image&image){
+    const int bayer_n = 4;
+    float bayer_matrix_4x4[][bayer_n] = {
+        {    -0.5,       0,  -0.375,   0.125 },
+        {    0.25,   -0.25,   0.375, - 0.125 },
+        { -0.3125,  0.1875, -0.4375,  0.0625 },
+        {  0.4375, -0.0625,  0.3125, -0.1875 },
+    };
+    
+    for (int x{0}; x < image.width(); x++) {
+        for (int y{0}; y < image.height(); y++) {
+            float bright = brightness(image.pixel(x, y));
+            float threshold = bayer_matrix_4x4[y % bayer_n][x % bayer_n];
+
+            if(bright + threshold > 0.5){
+                image.pixel(x, y) = {1, 1, 1};
+            }else{
+                image.pixel(x, y) = {0, 0, 0};
+            }
+            
+        }
+    }
+}
+
+// Normalisation de l'histogramme
+void normalizing_histogram(sil::Image&image){
+    
+    float darkest = 1.f;
+    float whitest = 0.f;
+    for (int x{0}; x < image.width(); x++) {
+        for (int y{0}; y < image.height(); y++) {
+
+            glm::vec3 &pixel = image.pixel(x, y);
+            float lum = brightness(pixel);
+            if(lum < darkest){
+                // si lum est + sombre que darkest, alors on remplace darkesst par lum
+                darkest = lum;
+            }else if (lum > whitest){
+                whitest = lum;
+
+            }else{}
+            float normalizedLum = (lum - darkest) / (whitest - darkest);
+            pixel = pixel * (normalizedLum / lum);
+
+
+        
+        }
+    }
+    std::cout << darkest << std::endl;
+    std::cout << whitest << std::endl;
+
+}
+
+// Vortex 
+void vortex(sil::Image &image){
+    sil::Image original_image = image;
+
+    for (int x = 0; x < image.width(); x++) {
+        for (int y = 0; y < image.height(); y++) {
+            glm::vec2 current_point{x, y};
+            glm::vec2 center_of_rotation{image.width()/2, image.height()/2};
+
+            float distance = glm::distance(current_point, center_of_rotation);
+
+            float angle = 45.f * (distance / glm::length(glm::vec2(image.width(), image.height())));
+
+            glm::vec2 rotated_point = glm::vec2{glm::rotate(glm::mat3{1.f}, angle) * glm::vec3{current_point - center_of_rotation, 0.f}} + center_of_rotation;
+
+            int rotated_x = static_cast<int>(std::round(rotated_point.x));
+            int rotated_y = static_cast<int>(std::round(rotated_point.y));
+
+            if (rotated_x >= 0 && rotated_x < image.width() && rotated_y >= 0 && rotated_y < image.height()) {
+                image.pixel(x, y) = original_image.pixel(rotated_x, rotated_y);
+            } else {
+                image.pixel(x, y) = {0, 0, 0};
+            }
+        }
+    }
+}
+
+// Convolution 
+void convolution(sil::Image &image) {
+    int kernel_size = 15;
+    float sigma = 25.f;
+    int half_size = kernel_size / 2;
+    std::vector<std::vector<float>> kernel(kernel_size, std::vector<float>(kernel_size, 0.f));
+    float sum = 0.0;
+    kernel = {
+        {-1.f, -1.f, -1.f},
+        {-1.f, 8.f, -1.f},
+        {-1.f, -1.f, -1.f},
+    };
+
+    // for (int i = -half_size; i <= half_size; i++) {
+    //     for (int j = -half_size; j <= half_size; j++) {
+    //         float value = std::exp(-(i * i + j * j) / (2 * sigma * sigma));
+    //         kernel[i + half_size][j + half_size] = value;
+    //         sum += value;
+    //     }
+    // }
+
+    // for (int i = 0; i < kernel_size; i++) {
+    //     for (int j = 0; j < kernel_size; j++) {
+    //         kernel[i][j] /= sum;
+    //     }
+    // }
+
+    sil::Image blurred_image = image;
+
+    for (int x = 0; x < image.width(); x++) {
+        for (int y = 0; y < image.height(); y++) {
+            glm::vec3 color_sum(0.0f);
+
+            for (int i = -half_size; i <= half_size; i++) {
+                for (int j = -half_size; j <= half_size; j++) {
+                    int neighbor_x = x + i;
+                    int neighbor_y = y + j;
+
+                    if (neighbor_x >= 0 && neighbor_x < image.width() &&
+                        neighbor_y >= 0 && neighbor_y < image.height()) {
+
+                        glm::vec3 neighbor_color = blurred_image.pixel(neighbor_x, neighbor_y);
+                        color_sum += neighbor_color * kernel[i + half_size][j + half_size];
+                    }
+                }
+            }
+
+            image.pixel(x, y) = color_sum;
+        }
+    }
+}
+
+// 
+
 
 int main()
 {
@@ -509,10 +672,35 @@ int main()
     //     pixel_sorting(image); 
     //     image.save("output/pixel_sorting.png"); // Sauvegarde l'image
     // }
+    // {
+    //     sil::Image image{300, 200}; // Lis l'image
+    //     gradiant_color(image, glm::vec3{1, 0.01, 0.6}, glm::vec3{0, 1, 0});
+    //     image.save("output/gradiant_color.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
+    //     mandelbrot_fractal(image);
+    //     image.save("output/mandelbrot_fractal.png"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/photo.jpg"}; // Lis l'image
+    //     dithering(image);
+    //     image.save("output/dithering.jpg"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/photo_faible_contraste.jpg"}; // Lis l'image
+    //     normalizing_histogram(image);
+    //     image.save("output/normalizing_histogram.jpg"); // Sauvegarde l'image
+    // }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     vortex(image);
+    //     image.save("output/vortex.png"); // Sauvegarde l'image
+    // }
     {
-        sil::Image image{300, 200}; // Lis l'image
-        gradiant_color(image, glm::vec3{1, 0.01, 0.6}, glm::vec3{0, 1, 0});
-        image.save("output/gradiant_color.png"); // Sauvegarde l'image
+        sil::Image image{"images/logo.png"}; // Lis l'image
+        convolution(image);
+        image.save("output/convolution2.png"); // Sauvegarde l'image
     }
     
 
