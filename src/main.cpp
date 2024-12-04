@@ -255,6 +255,58 @@ void animation(sil::Image&image){
    
         
     }
+
+
+// Animation bonus 
+void animation_bonus(sil::Image&image){
+
+    int a{0};
+    while (a < 500)
+    {
+        a++;
+    int b{300*(1-square((a-250.f)/250.f))};// b == center_y
+    int r{100*(1-square((a-250.f)/250.f))};
+    
+
+    // float couleur{(glm::vec3 color)};
+    // couleur de la lune 
+    glm::vec3 white{1, 1, 1};
+    glm::vec3 red{1,0,0};
+    // couleur du ciel 
+    glm::vec3 blue{0, 0, 1};
+    glm::vec3 bordeaux{0.51776470588f, 0.121568275f, 0.1921568627f};
+
+
+float pourcentage = (1-square((a-250.f)/250.f)); //static_cast<float>(a) / static_cast<float>(250);
+// if(pourcentage > 1)
+// pourcentage = 1;
+    glm::vec3 color_sun{glm::mix(white, red, pourcentage)};
+    glm::vec3 color_sky{glm::mix(blue, bordeaux, pourcentage)};
+
+
+        for (int x{0}; x < 500; ++x)
+        {
+            for (int y{0}; y < 500; ++y)
+            {
+                float distance = sqrt((pow(x-a, 2) + pow(y-b, 2)));
+                if(distance <r) {
+                    image.pixel(x, y) = color_sun;
+                }
+                else if (distance < r + 50)
+                {
+                   float p2 = (distance - r) / 50;
+                    image.pixel(x, y)= glm::mix(color_sun, color_sky, p2 );
+                }
+                
+                else{
+                    image.pixel(x, y)= color_sky;
+                
+                }  
+            }
+        }
+        image.save("output/anim_bonus/animation"+std::to_string(a)+".png");
+    }    
+    }
     
 // Rosace
 void rosace(sil::Image &image){
@@ -465,6 +517,32 @@ void dithering(sil::Image&image){
     }
 }
 
+// test tramage couleur 
+void dithering_color(sil::Image&image){
+    const int bayer_n = 4;
+    float bayer_matrix_4x4[][bayer_n] = {
+        {    -0.5,       0,  -0.375,   0.125 },
+        {    0.25,   -0.25,   0.375, - 0.125 },
+        { -0.3125,  0.1875, -0.4375,  0.0625 },
+        {  0.4375, -0.0625,  0.3125, -0.1875 },
+    };
+    
+    for (int x{0}; x < image.width(); x++) {
+        for (int y{0}; y < image.height(); y++) {
+            float bright = brightness(image.pixel(x, y));
+            float threshold = bayer_matrix_4x4[y % bayer_n][x % bayer_n];
+
+            if(bright + threshold > 0.5){
+                image.pixel(x, y) = {0, 0, 1};
+                image.pixel(x, y) = {1, 0, 0};
+            }else{
+                image.pixel(x, y) = {0, 1, 0};
+            }
+            
+        }
+    }
+}
+
 // Normalisation de l'histogramme
 void normalizing_histogram(sil::Image&image){
     
@@ -527,7 +605,7 @@ void convolution(sil::Image &image) {
     float sigma = 25.f;
     int half_size = kernel_size / 2;
     std::vector<std::vector<float>> kernel(kernel_size, std::vector<float>(kernel_size, 0.f));
-    float sum = 0.0;
+    // float sum = 0.0;
     kernel = {
         {-1.f, -1.f, -1.f},
         {-1.f, 8.f, -1.f},
@@ -573,7 +651,7 @@ void convolution(sil::Image &image) {
     }
 }
 
-// 
+
 
 
 int main()
@@ -649,6 +727,10 @@ int main()
     // }
     // {
     //     sil::Image image{500, 500}; // Lis l'image
+    //     animation_bonus(image); // Utilise la fonction pour modifier l'image
+    // }
+    // {
+    //     sil::Image image{500, 500}; // Lis l'image
     //     rosace(image); // Utilise la fonction pour modifier l'image
     //     image.save("output/rosace.png"); // Sauvegarde l'image
     // }
@@ -687,6 +769,11 @@ int main()
     //     dithering(image);
     //     image.save("output/dithering.jpg"); // Sauvegarde l'image
     // }
+    {
+        sil::Image image{"images/photo.jpg"}; // Lis l'image
+        dithering_color(image);
+        image.save("output/dithering_color3.jpg"); // Sauvegarde l'image
+    }
     // {
     //     sil::Image image{"images/photo_faible_contraste.jpg"}; // Lis l'image
     //     normalizing_histogram(image);
@@ -697,11 +784,11 @@ int main()
     //     vortex(image);
     //     image.save("output/vortex.png"); // Sauvegarde l'image
     // }
-    {
-        sil::Image image{"images/logo.png"}; // Lis l'image
-        convolution(image);
-        image.save("output/convolution2.png"); // Sauvegarde l'image
-    }
+    // {
+    //     sil::Image image{"images/logo.png"}; // Lis l'image
+    //     convolution(image);
+    //     image.save("output/convolution2.png"); // Sauvegarde l'image
+    // }
     
 
 }

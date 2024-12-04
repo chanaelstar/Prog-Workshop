@@ -1,4 +1,5 @@
 #include <sil/sil.hpp>
+#include "sous_fonction.hpp"
 
 // pour l'exercice du tri de pixel 
 float brightness(glm::vec3 const&color){
@@ -9,8 +10,8 @@ float brightness(glm::vec3 const&color){
 
 
 // Dégradé couleur - OkLab 
-struct Lab {float L; float a; float b;};
-struct RGB {float r; float g; float b;};
+// struct Lab {float L; float a; float b;};
+// struct RGB {float r; float g; float b;};
 
     // Conversion des formats de couleur 
         // 1 - srgb en linear 
@@ -79,4 +80,10 @@ glm::vec3 oklab_to_linear(glm::vec3 c)
 }
 
 
+
+// animation bonus 
+float square(float valeur){
+     valeur = valeur * valeur;
+     return valeur;
+}
 
